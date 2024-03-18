@@ -11,5 +11,5 @@ import dagger.hilt.android.components.ViewModelComponent
 @InstallIn(ViewModelComponent::class)
 abstract class RepositoryModule {
     @Binds
-    abstract fun bindSearchImageRepository(searchImageRepositoryImpl: ProductRepositoryImpl): ProductRepository
+    abstract fun bindProductRepository(productRepositoryImpl: ProductRepositoryImpl): ProductRepository
 }
