@@ -1,8 +1,8 @@
 package com.example.products.domain.repository
 
-import com.example.products.domain.entity.ProductDomain
+import com.example.products.domain.entity.Product
 
 interface ProductRepository {
-    //suspend fun fetchProductsOnline(query: String): List<ProductDomain>
-    //suspend fun fetchProductsOffline(query: String): List<ProductDomain>
+    suspend fun fetchProductsOnline(): List<Product>
+    //suspend fun fetchProductsOffline(): List<ProductDomain>
 }

@@ -33,7 +33,6 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authorizationInterceptor: Interceptor,
         httpLoggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient =
         OkHttpClient.Builder()
