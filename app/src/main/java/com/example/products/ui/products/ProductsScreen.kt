@@ -1,7 +1,5 @@
 package com.example.products.ui.products
 
-import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -20,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
@@ -53,7 +50,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -90,8 +86,9 @@ fun ProductsScreen(
     }
     ExploreScreenContent(
         modifier = Modifier.fillMaxSize(),
-        fetchData = viewModel::getProductsOnline,
-        uiState = viewModel.uiState.collectAsState().value,
+        searchProduct = viewModel::searchProduct,
+        isLoading = viewModel.isLoading.collectAsState().value,
+        products = viewModel.filteredProducts.collectAsState().value,
     )
 }
 
@@ -112,8 +109,9 @@ fun LoadingComposable() {
 @Composable
 internal fun ExploreScreenContent(
     modifier: Modifier = Modifier,
-    uiState: ProductsState,
-    fetchData: () -> Unit,
+    isLoading: Boolean,
+    products: List<Product>,
+    searchProduct: (String) -> Unit,
 ) {
 
     Surface(
@@ -129,31 +127,27 @@ internal fun ExploreScreenContent(
                         start = 16.dp,
                         end = 16.dp, top = 16.dp, bottom = 4.dp
                     ),
-                onSearchClicked = { query ->
-                    //fetchData(query)
+                onQueryChanged = { query ->
+                    searchProduct(query)
                 },
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            if (uiState.isLoading) {
+            if (isLoading) {
                 LoadingComposable()
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    items(uiState.success.size) {
+                    items(products.size) {
                         ProductItem(
                             modifier = Modifier.fillMaxWidth(),
-                            product = uiState.success[it],
+                            product = products[it],
                         )
                     }
                 }
-            }
-
-            uiState.error?.let { error ->
-                Toast.makeText(LocalContext.current, error, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -181,7 +175,6 @@ fun ProductItemPreview() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductItem(
     product: Product,
@@ -197,10 +190,10 @@ private fun ProductItem(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
             horizontalAlignment = Alignment.Start,
         ) {
+            Spacer(modifier = Modifier.height(12.dp))
 
             val imageLoader = ImageLoader.Builder(LocalContext.current)
                 .respectCacheHeaders(false).build()
@@ -211,7 +204,7 @@ private fun ProductItem(
                 ),
                 contentDescription = product.title,
                 modifier = Modifier
-                    .width(100.dp)
+                    .fillMaxWidth()
                     .height(100.dp)
                     .align(Alignment.CenterHorizontally),
                 contentScale = ContentScale.Inside
@@ -280,7 +273,7 @@ fun SearchBoxPreview() {
                         start = 16.dp,
                         end = 16.dp, top = 16.dp, bottom = 4.dp
                     ),
-                onSearchClicked = {},
+                onQueryChanged = {},
             )
         }
     }
@@ -290,7 +283,7 @@ fun SearchBoxPreview() {
 @Composable
 fun SearchBox(
     modifier: Modifier = Modifier,
-    onSearchClicked: (query: String) -> Unit,
+    onQueryChanged: (query: String) -> Unit,
 ) {
     val query = rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -302,11 +295,11 @@ fun SearchBox(
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Search,
         ), keyboardActions = KeyboardActions(onSearch = {
-            onSearchClicked(query.value)
             keyboardController?.hide()
         }),
         value = query.value,
         onValueChange = {
+            onQueryChanged(it)
             query.value = it
         },
         shape = CircleShape,
@@ -323,6 +316,7 @@ fun SearchBox(
                     .clickable(
                         onClickLabel = stringResource(id = R.string.cd_clear_search)
                     ) {
+                        onQueryChanged("")
                         query.value = ""
                     },
                 imageVector = Icons.Default.Cancel, contentDescription = null
