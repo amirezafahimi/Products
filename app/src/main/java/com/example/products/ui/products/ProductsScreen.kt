@@ -79,7 +79,7 @@ fun ProductsScreen(
             if (NetworkUtils.isOnline(context = context)) {
                 viewModel.getProductsOnline()
             } else {
-                //viewModel.initOfflineMode()
+                viewModel.getProductsOffline()
             }
             isInitialized.value = true
         }

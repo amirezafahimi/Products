@@ -12,7 +12,7 @@ class ProductResponse(
     @SerializedName("image") var image: String? = null,
     @SerializedName("rating") var rating: Rating? = Rating()
 ) {
-    fun mapToProductEntity() = Product(
+    fun mapToProductDomain() = Product(
         id = id ?: 0,
         title = title ?: "",
         price = price ?: 0.0,
