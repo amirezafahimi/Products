@@ -70,6 +70,7 @@ dependencies {
     implementation("androidx.paging:paging-runtime-ktx:3.2.0")
     implementation("androidx.paging:paging-compose:3.2.0")
 
+    implementation("androidx.compose.material:material:1.4.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.material:material-icons-extended:1.4.1")
 
@@ -94,6 +95,9 @@ dependencies {
     kapt("androidx.room:room-compiler:2.5.1")
     implementation("androidx.room:room-ktx:2.5.1")
     implementation("com.google.android.play:app-update:2.0.1")
+
+    // turbine for testing the flows
+    testImplementation("app.cash.turbine:turbine:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:4.5.1")

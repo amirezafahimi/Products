@@ -1,5 +1,6 @@
 package com.example.products.ui.products
 
+import android.content.Context
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -10,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,14 +22,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,15 +82,14 @@ fun ProductsScreen(
 ) {
     val isInitialized = rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
-    LaunchedEffect(isInitialized) {
-        if (!isInitialized.value) {
-            if (NetworkUtils.isOnline(context = context)) {
-                viewModel.getProductsOnline()
-            } else {
-                viewModel.getProductsOffline()
-            }
-            isInitialized.value = true
+
+    if (!isInitialized.value) {
+        if (NetworkUtils.isOnline(context = context)) {
+            viewModel.getProductsOnline()
+        } else {
+            viewModel.getProductsOffline()
         }
+        isInitialized.value = true
     }
     ExploreScreenContent(
         modifier = Modifier.fillMaxSize(),
@@ -106,12 +113,15 @@ fun LoadingComposable() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 internal fun ExploreScreenContent(
     modifier: Modifier = Modifier,
     isLoading: Boolean,
     products: List<Product>,
     searchProduct: (String) -> Unit,
+    viewModel: ProductsViewModel = hiltViewModel(),
+    context: Context = LocalContext.current
 ) {
 
     Surface(
@@ -134,20 +144,39 @@ internal fun ExploreScreenContent(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            if (isLoading) {
-                LoadingComposable()
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.padding(10.dp)
-                ) {
-                    items(products.size) {
-                        ProductItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            product = products[it],
-                        )
+            val isRefreshing = viewModel.isRefreshing.collectAsState()
+            val pullRefreshState = rememberPullRefreshState(isRefreshing.value, {
+                if (NetworkUtils.isOnline(context = context)) {
+                    viewModel.getProductsOnline()
+                } else {
+                    viewModel.getProductsOffline()
+                }
+            })
+
+            Box(
+                Modifier
+                    .pullRefresh(pullRefreshState)
+            ) {
+                if (isLoading) {
+                    LoadingComposable()
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.padding(10.dp)
+                    ) {
+                        items(products.size) {
+                            ProductItem(
+                                modifier = Modifier.fillMaxWidth(),
+                                product = products[it],
+                            )
+                        }
                     }
                 }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing.value,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
             }
         }
     }

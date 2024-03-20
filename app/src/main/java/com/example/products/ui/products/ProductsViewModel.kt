@@ -19,6 +19,9 @@ class ProductsViewModel @Inject constructor(
     private val getProductsOfflineUseCase: GetProductsOfflineUseCase,
 ) : ViewModel() {
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -29,7 +32,7 @@ class ProductsViewModel @Inject constructor(
     val filteredProducts: StateFlow<List<Product>> = _filteredProducts
 
     init {
-        observeFilteredProducts()
+        prepareFilteredProducts()
     }
 
     fun getProductsOnline() {
@@ -38,6 +41,7 @@ class ProductsViewModel @Inject constructor(
             getProductsOnlineUseCase().let {
                 _isLoading.value = false
                 _allProducts.value = it
+                _isRefreshing.value = false
             }
         }
     }
@@ -47,11 +51,12 @@ class ProductsViewModel @Inject constructor(
             getProductsOfflineUseCase().let {
                 _isLoading.value = false
                 _allProducts.value = it
+                _isRefreshing.value = false
             }
         }
     }
 
-    private fun observeFilteredProducts() {
+    private fun prepareFilteredProducts() {
         viewModelScope.launch {
             combine(_allProducts, _searchQuery) { all, query ->
                 filterProductsByQuery(all, query)
