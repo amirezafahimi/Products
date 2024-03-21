@@ -7,8 +7,7 @@ FakeStore Products is an Android application developed using MVVM architecture, 
 - Display a list of products fetched from the FakeStore API.
 - Allow users to search for products by title.
 - Cache the last fetched products for offline mode.
-- MVVM architecture for separation of concerns.
-- Kotlin Flow for asynchronous data streams.
+- CLEAN architecture for separation of concerns.
 - Jetpack Compose for building the UI.
 
 
@@ -18,7 +17,7 @@ FakeStore Products is an Android application developed using MVVM architecture, 
 - Retrofit for networking.
 - Room Database for local caching.
 - Jetpack Compose for building the UI.
-- Turbine for testing Kotlin Flows.
+- Turbine for testing Kotlin StateFlows.
 
 ### Usage
 
