@@ -1,4 +1,4 @@
-package com.example.products
+package com.example.products.presentation
 
 import app.cash.turbine.test
 import com.example.products.domain.entity.Product
